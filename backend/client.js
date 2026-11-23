@@ -73,5 +73,6 @@
   window.clr = () => toast('A exclusão de dados é feita individualmente pela lista de registros.', 1);
   const originalRender = window.render;
   window.render = () => { originalRender(); const nav = document.getElementById('nav'); if (nav && user) nav.insertAdjacentHTML('beforeend', `<a href="#config">👤 ${user.name}</a>`); };
+  V.config = () => main(`<h1>Configurações</h1><div class="card"><h2>Conta</h2><p>Conectado como <b>${esc(user?.name || '')}</b> (${esc(user?.email || '')}). Seus dados ficam sincronizados pelo banco de dados.</p><button class="btn d" onclick="SoilAuth.logout()">Sair da conta</button></div><div class="card"><h2>Sobre</h2><p>Soil Analysis: sistema de cadastro e interpretação de análises de solo em pastagens. As interpretações são orientativas e não substituem a avaliação de um engenheiro agrônomo.</p></div>`);
   window.addEventListener('load', boot);
 })();
