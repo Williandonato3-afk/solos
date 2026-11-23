@@ -257,7 +257,13 @@ for (const kind of Object.keys(configs)) {
     const error = validateRecord(kind, req.body);
     if (error) return res.status(400).json({ error });
     if (kind !== 'properties' && !(await owned(pool, 'properties', req.body.prop, req.user.id))) return res.status(404).json({ error: 'Propriedade não encontrada.' });
-    if (kind === 'analyses' && !(await owned(pool, 'pastures', req.body.pasto, req.user.id))) return res.status(404).json({ error: 'Pastagem não encontrada.' });
+    if (kind === 'analyses') {
+      const [linkedPasture] = await pool.execute(
+        'SELECT id FROM pastures WHERE id = ? AND property_id = ? AND user_id = ?',
+        [req.body.pasto, req.body.prop, req.user.id]
+      );
+      if (!linkedPasture.length) return res.status(400).json({ error: 'A pastagem selecionada não pertence à propriedade informada.' });
+    }
     const id = clean(req.body.id || makeId());
     const { fields, values } = sqlColumns(kind, req.body, req.user.id, id, true);
     await pool.execute('INSERT INTO ' + cfg.table + ' (' + fields.map(f => '`'+f+'`').join(',') + ') VALUES (' + fields.map(() => '?').join(',') + ')', values);
