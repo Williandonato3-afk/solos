@@ -1,0 +1,96 @@
+CREATE DATABASE IF NOT EXISTS soil_analysis
+  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE soil_analysis;
+
+CREATE TABLE IF NOT EXISTS users (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(120) NOT NULL,
+  email VARCHAR(190) NOT NULL UNIQUE,
+  password_hash VARCHAR(255) NOT NULL,
+  role ENUM('admin','user') NOT NULL DEFAULT 'user',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS properties (
+  id VARCHAR(64) NOT NULL PRIMARY KEY,
+  user_id BIGINT UNSIGNED NOT NULL,
+  nome VARCHAR(180) NOT NULL,
+  produtor VARCHAR(180) NOT NULL,
+  `local` VARCHAR(180) NOT NULL,
+  area DECIMAL(12,3) NOT NULL DEFAULT 0,
+  obs TEXT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_properties_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  INDEX idx_properties_user (user_id)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS pastures (
+  id VARCHAR(64) NOT NULL PRIMARY KEY,
+  user_id BIGINT UNSIGNED NOT NULL,
+  property_id VARCHAR(64) NOT NULL,
+  nome VARCHAR(180) NOT NULL,
+  area DECIMAL(12,3) NOT NULL DEFAULT 0,
+  capim VARCHAR(180) NOT NULL,
+  data DATE NULL,
+  obs TEXT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_pastures_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT fk_pastures_property FOREIGN KEY (property_id) REFERENCES properties(id) ON DELETE CASCADE,
+  INDEX idx_pastures_user (user_id),
+  INDEX idx_pastures_property (property_id)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS analyses (
+  id VARCHAR(64) NOT NULL PRIMARY KEY,
+  user_id BIGINT UNSIGNED NOT NULL,
+  property_id VARCHAR(64) NOT NULL,
+  pasture_id VARCHAR(64) NOT NULL,
+  amostra VARCHAR(120) NOT NULL,
+  data DATE NOT NULL,
+  prof VARCHAR(80) NULL,
+  ph DECIMAL(10,3) NULL,
+  mo DECIMAL(10,3) NULL,
+  al DECIMAL(10,3) NULL,
+  hal DECIMAL(10,3) NULL,
+  p DECIMAL(10,3) NULL,
+  k DECIMAL(10,3) NULL,
+  ca DECIMAL(10,3) NULL,
+  mg DECIMAL(10,3) NULL,
+  sb DECIMAL(10,3) NULL,
+  ctc DECIMAL(10,3) NULL,
+  v DECIMAL(10,3) NULL,
+  argila DECIMAL(10,3) NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_analyses_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT fk_analyses_property FOREIGN KEY (property_id) REFERENCES properties(id) ON DELETE CASCADE,
+  CONSTRAINT fk_analyses_pasture FOREIGN KEY (pasture_id) REFERENCES pastures(id) ON DELETE CASCADE,
+  INDEX idx_analyses_user (user_id),
+  INDEX idx_analyses_property (property_id),
+  INDEX idx_analyses_pasture (pasture_id)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS password_resets (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  user_id BIGINT UNSIGNED NOT NULL,
+  token_hash CHAR(64) NOT NULL UNIQUE,
+  expires_at DATETIME NOT NULL,
+  used_at DATETIME NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_password_resets_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  INDEX idx_password_resets_user (user_id)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS migration_batches (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  user_id BIGINT UNSIGNED NOT NULL,
+  fingerprint CHAR(64) NOT NULL,
+  properties_count INT UNSIGNED NOT NULL DEFAULT 0,
+  pastures_count INT UNSIGNED NOT NULL DEFAULT 0,
+  analyses_count INT UNSIGNED NOT NULL DEFAULT 0,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_migration_batches_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  UNIQUE KEY uq_migration_user_fingerprint (user_id, fingerprint)
+) ENGINE=InnoDB;
