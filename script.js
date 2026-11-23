@@ -113,7 +113,3 @@ function render(){const [r,id]=(location.hash||'#inicio').slice(1).split('-');
 $('#nav').innerHTML=NAV.map(([k,l])=>`<a href="#${k}" class="${k==r||(r=='resultado'&&k=='analises')?'on':''}">${l}</a>`).join('');
 (V[r]||V.inicio)(id);if(r!='analises'&&r!='propriedades'&&r!='pastagens')scrollTo(0,0)}
 addEventListener('hashchange',render);render();
-
-
-
-0.0.0.0
