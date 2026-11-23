@@ -124,9 +124,11 @@ app.post('/api/auth/register', authLimiter, asyncRoute(async (req, res) => {
   if (!name || name.length > 120 || !validEmail(email) || password.length < 10) {
     return res.status(400).json({ error: 'Informe nome, e-mail válido e senha com pelo menos 10 caracteres.' });
   }
-  if (!process.env.INVITE_CODE || !req.body.inviteCode || !crypto.timingSafeEqual(
-    Buffer.from(String(req.body.inviteCode)), Buffer.from(String(process.env.INVITE_CODE))
-  )) return res.status(403).json({ error: 'Código de convite inválido.' });
+  const suppliedInvite = Buffer.from(String(req.body.inviteCode || ''));
+  const expectedInvite = Buffer.from(String(process.env.INVITE_CODE || ''));
+  const inviteMatches = expectedInvite.length > 0 && suppliedInvite.length === expectedInvite.length &&
+    crypto.timingSafeEqual(suppliedInvite, expectedInvite);
+  if (!inviteMatches) return res.status(403).json({ error: 'Código de convite inválido.' });
   const hash = await bcrypt.hash(password, 12);
   try {
     const [result] = await pool.execute('INSERT INTO users (name,email,password_hash,role) VALUES (?,?,?,?)',
