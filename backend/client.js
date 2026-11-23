@@ -44,7 +44,7 @@
         } else sessionStorage.setItem('sa_migration_skipped', '1');
       }
       render();
-    } catch (error) { toast(error.message, 1); }
+    } catch (error) { toast(error.message, 1); render(); }
   };
   window.SoilAuth = { show: showAuth, logout: async () => { try { await request('/auth/logout', { method: 'POST' }); } catch {} user = null; db = { props: [], pastos: [], analises: [] }; showAuth('login'); } };
   window.sub = async (event, kind) => {
