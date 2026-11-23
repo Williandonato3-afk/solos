@@ -27,15 +27,20 @@ if (!JWT_SECRET || JWT_SECRET.length < 32) {
   throw new Error('Configure JWT_SECRET com pelo menos 32 caracteres.');
 }
 
-const allowedOrigin = process.env.FRONTEND_URL;
+app.set('trust proxy', 1);
 app.use(helmet({ contentSecurityPolicy: false }));
-app.use(cors({
-  origin(origin, callback) {
-    if (!origin || !allowedOrigin || origin === allowedOrigin) return callback(null, true);
-    return callback(new Error('Origem não permitida pelo CORS.'));
-  },
-  credentials: true
-}));
+app.use((req, res, next) => {
+  const origin = req.get('Origin');
+  const expectedOrigin = process.env.FRONTEND_URL || `${req.protocol}://${req.get('host')}`;
+  if (origin && origin !== expectedOrigin) return res.status(403).json({ error: 'Origem não permitida.' });
+  res.setHeader('Vary', 'Origin');
+  res.setHeader('Access-Control-Allow-Origin', expectedOrigin);
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  next();
+});
 app.use(express.json({ limit: '2mb' }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, '..')));
