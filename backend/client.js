@@ -1,5 +1,6 @@
 'use strict';
 (() => {
+  document.querySelector('.app').style.display = 'none';
   const legacy = (() => { try { return JSON.parse(localStorage.getItem('sa_db') || 'null'); } catch { return null; } })();
   let user = null;
   const request = async (path, options = {}) => {
