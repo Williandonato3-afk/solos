@@ -324,6 +324,8 @@ app.post('/api/migration/import', requireAuth, asyncRoute(async (req, res) => {
       const propertyId = props.get(String(a.prop));
       const pastureId = pastures.get(String(a.pasto));
       if (!propertyId || !pastureId) throw new Error('Migração interrompida: uma análise referencia propriedade ou pastagem inexistente.');
+      const originalPasture = source.pastos.find(item => String(item.id) === String(a.pasto));
+      if (!originalPasture || String(originalPasture.prop) !== String(a.prop)) throw new Error('Migração interrompida: uma análise referencia uma pastagem de outra propriedade.');
       const fields = ['id','user_id','property_id','pasture_id','amostra','data','prof','ph','mo','al','hal','p','k','ca','mg','sb','ctc','v','argila'];
       const values = [String(a.id || makeId()),req.user.id,propertyId,pastureId,clean(a.amostra || 'Sem identificação'),a.data || new Date().toISOString().slice(0,10),a.prof || null,
         ...['ph','mo','al','hal','p','k','ca','mg','sb','ctc','v','argila'].map(k => apiValue(a[k],k))];
